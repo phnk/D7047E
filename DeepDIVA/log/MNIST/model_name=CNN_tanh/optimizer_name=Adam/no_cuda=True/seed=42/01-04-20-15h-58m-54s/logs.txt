@@ -1,0 +1,17 @@
+[2020-04-01 15:58:54] [    INFO] --- Setup logging. Log file: log/MNIST/model_name=CNN_tanh/optimizer_name=Adam/no_cuda=True/seed=42/01-04-20-15h-58m-54s/logs.txt (setup.py:601)
+[2020-04-01 15:58:54] [    INFO] --- Arguments saved to: log/MNIST/model_name=CNN_tanh/optimizer_name=Adam/no_cuda=True/seed=42/01-04-20-15h-58m-54s/args.txt (setup.py:604)
+[2020-04-01 15:58:57] [    INFO] --- Initialize Tensorboard SummaryWriter (setup.py:613)
+[2020-04-01 15:58:58] [ WARNING] --- Git status is ignored! (RunMe.py:208)
+[2020-04-01 15:58:58] [   ERROR] --- Unhandled error: AttributeError("module 'torch.nn' has no attribute 'tanh'") (RunMe.py:264)
+[2020-04-01 15:58:58] [   ERROR] --- Traceback (most recent call last):
+  File "template/RunMe.py", line 257, in _execute
+    **args.__dict__)
+  File "/home/ph/D7047E/DeepDIVA/template/runner/image_classification/image_classification.py", line 41, in single_run
+    model, num_classes, best_value, train_loader, val_loader, test_loader, optimizer, criterion = cls.prepare(**kwargs)
+  File "/home/ph/D7047E/DeepDIVA/template/runner/image_classification/image_classification.py", line 89, in prepare
+    model_expected_input_size = models.__dict__[model_name]().expected_input_size
+  File "/home/ph/D7047E/DeepDIVA/models/image_classification/CNN_tanh.py", line 55, in __init__
+    nn.tanh()
+AttributeError: module 'torch.nn' has no attribute 'tanh'
+ (RunMe.py:265)
+[2020-04-01 15:58:58] [   ERROR] --- Execution finished with errors :( (RunMe.py:266)
