@@ -113,3 +113,6 @@ ENV/
 _build
 _static
 _templates
+
+# Dataset
+toy_dataset/
