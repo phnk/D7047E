@@ -1,0 +1,6 @@
+[2020-04-18 15:10:29] [    INFO] --- Setup logging. Log file: ./output/default_args_cifar10/CIFAR10/seed=42/18-04-20-15h-10m-29s/logs.txt (setup.py:601)
+[2020-04-18 15:10:29] [    INFO] --- Arguments saved to: ./output/default_args_cifar10/CIFAR10/seed=42/18-04-20-15h-10m-29s/args.txt (setup.py:604)
+[2020-04-18 15:10:32] [    INFO] --- Initialize Tensorboard SummaryWriter (setup.py:613)
+[2020-04-18 15:10:32] [ WARNING] --- Git status is ignored! (RunMe.py:208)
+[2020-04-18 15:10:32] [ WARNING] --- There are no GPUs available on this system, or your NVIDIA drivers are outdated. (setup.py:690)
+[2020-04-18 15:10:32] [ WARNING] --- Switch to CPU only computation using --no-cuda. (setup.py:691)
