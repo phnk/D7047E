@@ -1,1 +1,3 @@
 Project/data/
+Project/models
+*/__pycache__/*
