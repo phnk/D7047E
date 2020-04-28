@@ -2,8 +2,3 @@ Project/data/
 Project/models
 */__pycache__/*
 DeepDIVA/datasets/*
-*.pth.tar
-*.tar
-**/*.pth.tar
-**/*.tar
-**/*.gz
