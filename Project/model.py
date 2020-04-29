@@ -131,7 +131,7 @@ class Net(nn.Module):
     def __init__(self, embedding_size=EMBEDDING_DIM, hidden_size=HIDDEN_DIM, vocab_size=100, target_size=1, pretrained_embeddings=None, pretrained_model=None, device='cpu'):
         super(Net, self).__init__()
         self.device = device
-
+        print("self.device=", device)
         # layer definitions
         if pretrained_embeddings is not None:
            self.weights = torch.FloatTensor(pretrained_embeddings.wv.vectors)
