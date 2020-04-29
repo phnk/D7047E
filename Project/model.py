@@ -8,12 +8,13 @@ from sklearn.utils import shuffle
 from collections import Counter
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler
 import time
+import copy
 
 from gensim.models import KeyedVectors
 
 BATCH_SIZE = 64
 MAX_LENGTH = 250
-EPOCHS = 10
+STOPPING_CRITERIA_EPOCHS = 10
 EMBEDDING_DIM = 300
 HIDDEN_DIM = 128
 LR = 1e-3
@@ -177,7 +178,10 @@ class Net(nn.Module):
 
     def _train(self, train_loader, val_loader, test_loader, save=False):
         start_time = time.time()
-        for epoch in range(EPOCHS):
+        best_model = nn.Linear(10, 2)
+        best_loss = float('inf')
+        num_of_no_improvement = 0
+        while True:
             self.train()
             train_loss, train_steps = 0.0, 0.0
             for i, (inputs, masks, labels) in enumerate(train_loader):
@@ -208,10 +212,23 @@ class Net(nn.Module):
                     loss = self.loss_fn(scores, labels)
                     eval_loss += loss.item()
                     eval_steps += 1
+
+            if eval_loss < best_loss:
+                print("New best model with train loss {0:.2f}".format(best_loss))
+                best_loss = eval_loss
+                best_model = copy.deepcopy(self)
+                num_of_no_improvement = 0
+            else:
+                num_of_no_improvement += 1
+            
             print("Val loss: {}".format(eval_loss/eval_steps))
             print("Time elapsed: {}".format(time.time() - start_time))
-        print("Training done..")
 
-        # save model after training
+            if num_of_no_improvement >= STOPPING_CRITERIA_EPOCHS:
+                print("Early stopping criteria met, stopping...")
+                break
+            
         if save:
-            torch.save(self, "models/test.pt")
+            print("Save the best model...")
+            torch.save(best_model, "models/SA_model_test-loss-{0:.2f}.pt".format(best_loss))
+        print("Training done..")
