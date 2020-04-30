@@ -1,4 +1,4 @@
 Project/data/
 Project/models
 */__pycache__/*
-DeepDIVA/datasets/*
+DeepDIVA/data/*

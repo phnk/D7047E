@@ -189,7 +189,7 @@ def _main(args):
 
     features, preds, labels, filenames = results
 
-    _make_folder_if_not_exists(os.path.dirname(args.output_file))
+    _make_folder_if_not_exists(os.path.dirname(args.output))
 
     if args.tensorboard:
         if args.output.endwith('.png'):
@@ -205,7 +205,7 @@ def _main(args):
         return
     else:
         viz_img = _make_embedding(features=features, labels=labels, embedding=args.embedding, three_d=args.three_d)
-        save_numpy_image(args.output_file, viz_img)
+        save_numpy_image(args.output, viz_img)
         return
 
 
