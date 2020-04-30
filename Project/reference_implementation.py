@@ -48,11 +48,12 @@ if __name__ == "__main__":
     train_loader, val_loader, test_loader, vocab_size = create_dataloader("data/train.csv")
 
     model = Net(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE)
+    model = model.to(device)
      
     # train the network
     model._train(train_loader, val_loader, test_loader, save=True)
 
-    f = FilterVisualizer(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE, model=model)
+    #f = FilterVisualizer(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE, model=model)
 
-    f.visualize(2, vocab_size)
+    #f.visualize(2, vocab_size)
    
