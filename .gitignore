@@ -2,3 +2,5 @@ Project/data/
 Project/models
 */__pycache__/*
 DeepDIVA/data/*
+*.pth.tar
+*.tar.gz

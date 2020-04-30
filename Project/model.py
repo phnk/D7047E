@@ -181,6 +181,7 @@ class Net(nn.Module):
         best_model = nn.Linear(10, 2)
         best_loss = float('inf')
         num_of_no_improvement = 0
+        epochs = 0
         while True:
             self.train()
             train_loss, train_steps = 0.0, 0.0
@@ -223,12 +224,13 @@ class Net(nn.Module):
             
             print("Val loss: {}".format(eval_loss/eval_steps))
             print("Time elapsed: {}".format(time.time() - start_time))
-
+         
             if num_of_no_improvement >= STOPPING_CRITERIA_EPOCHS:
                 print("Early stopping criteria met, stopping...")
                 break
             
+            epochs += 1
         if save:
             print("Save the best model...")
             torch.save(best_model, "models/SA_model_test-loss-{0:.2f}.pt".format(best_loss))
-        print("Training done..")
+        print("Training done after {} epochs..".format(epochs))
