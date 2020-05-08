@@ -232,7 +232,10 @@ class Net(nn.Module):
             epochs += 1
         if save:
             print("Save the best model...")
-            torch.save(best_model, "models/SA_model_test-loss-{0:.2f}.pt".format(best_loss))
+            torch.save(best_model.state_dict(), "models/SA_model_test-loss-{0:.2f}.pt".format(best_loss))
         print("Training done after {} epochs..".format(epochs))
 
         return best_model
+
+    def load(self, path):
+        self.load_state_dict(torch.load(path))
