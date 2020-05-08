@@ -7,7 +7,7 @@ from torch.autograd import Variable
 import argparse
 
 args = argparse.ArgumentParser()
-args.add_argument("--load", type=str, const=load)
+args.add_argument("--load", type=str)
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 LR = 1e-3
