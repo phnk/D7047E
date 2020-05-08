@@ -4,6 +4,10 @@ from gensim.models import KeyedVectors
 import torch.optim as optim
 from save_features import SaveFeatures
 from torch.autograd import Variable
+import argparse
+
+args = argparse.ArgumentParser()
+args.add_argument("--load", type=str, const=load)
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 LR = 1e-3
@@ -30,14 +34,14 @@ class FilterVisualizer():
 
         input_optim = torch.optim.Adam([random_sentence], lr=LR)
 
-        for n in range(optim_steps):
+        for _ in range(optim_steps):
             input_optim.zero_grad()
-            inference = self.model(random_sentence, embedded_input=True)
+            self.model(random_sentence, embedded_input=True)
             loss = -activations.features.mean() #get mean, no filter used because of NLP tasks
-            print(inference)
             loss.backward()
             input_optim.step()
 
+        print(input_optim)
 
 if __name__ == "__main__":
     print("device to use: {}".format(DEVICE))
@@ -50,9 +54,12 @@ if __name__ == "__main__":
     model = Net(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE)
     
     # train the network
-    model._train(train_loader, val_loader, test_loader, save=True)
-
-    #f = FilterVisualizer(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE, model=model)
-
-    #f.visualize(2, vocab_size)
+    if args.load is not None:
+        best_model = model.load(args.load)
+    else:
+        best_model = model._train(train_loader, val_loader, test_loader, save=True)
+    
+        
+    f = FilterVisualizer(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE, model=best_model)
+    f.visualize(2, vocab_size)
    

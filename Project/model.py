@@ -201,7 +201,7 @@ class Net(nn.Module):
             print("Train loss: {}".format(train_loss/train_steps))
 
             self.eval()
-            eval_loss, eval_acc, eval_steps = 0.0, 0.0, 0.0
+            eval_loss, eval_steps = 0.0, 0.0
             for i, (inputs, masks, labels) in enumerate(val_loader):
                 print("Val batch {}/{}...".format(i, len(val_loader)))
                 with torch.no_grad():
@@ -234,3 +234,5 @@ class Net(nn.Module):
             print("Save the best model...")
             torch.save(best_model, "models/SA_model_test-loss-{0:.2f}.pt".format(best_loss))
         print("Training done after {} epochs..".format(epochs))
+
+        return best_model
