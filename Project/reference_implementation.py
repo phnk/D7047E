@@ -6,8 +6,10 @@ from save_features import SaveFeatures
 from torch.autograd import Variable
 import argparse
 
-args = argparse.ArgumentParser()
-args.add_argument("--load", type=str)
+parser = argparse.ArgumentParser()
+parser.add_argument("--load", type=str, required=False)
+args = parser.parse_args()
+
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 LR = 1e-3
@@ -54,11 +56,12 @@ if __name__ == "__main__":
     model = Net(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE)
     
     # train the network
-    if args.load is not None:
-        best_model = model.load(args.load)
-    else:
+    if args.load is None:
         best_model = model._train(train_loader, val_loader, test_loader, save=True)
-    
+    else:
+        print(args.load)
+        best_model = model.load(args.load)
+
         
     f = FilterVisualizer(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE, model=best_model)
     f.visualize(2, vocab_size)
