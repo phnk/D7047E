@@ -221,6 +221,7 @@ class Net(nn.Module):
             else:
                 num_of_no_improvement += 1
             
+            predictions = torch.FloatTensor(predictions)
             print("Val loss: {}".format(eval_loss/eval_steps))
             print("Val acc: {}".format(accuracy_score(labels, predictions)))
             print("Time elapsed: {}".format(time.time() - start_time))
