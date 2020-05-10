@@ -1,0 +1,49 @@
+python train.py shakespeare.txt
+
+Loss:
+loss = [1.7680, 1.5956,1.5147,1.4850,1.4622,1.4301,1.4007,1.4526,1.3927,1.4124,1.4147,1.3763,1.3766,1.3647,1.4023,1.3905,1.3475,1.3563,1.3520,1.3594]
+PPL:
+[5.859123388542667, 4.931286956839076, 4.548056505211071, 4.414965412778578, 4.315443067375472, 4.179117082736631, 4.058039600577321, 4.274213034731522,
+ 4.02570479544534, 4.105797502835258, 4.115251705256836, 3.960221666148893, 3.961409910876535, 3.914548511267042, 4.0645376610003305,
+ 4.0168579799606094, 3.8477940112859113, 3.881804023159813, 3.8651481017552367, 3.8938562869886897]
+
+python generate.py shakespeare.pt --prime_str "Woman"
+Woman of her love,
+Whom the king record I hope there, and I
+Dear he some another wet love.
+
+GONZALO:
+Bett
+
+(Horse)
+Horse fast, and his lose alongs,
+That make father his father were sometay,
+That I believe you are as good
+
+(Henry)
+Henry's body to the heart to be so hand.
+
+HERMIONE:
+A sovereignifier to you of the pechade
+Of their enoug
+
+
+(The)
+There and he compham be like a hands
+Maystly roach and bids: do methinks thou
+And with his heartly eart
+
+(What is)
+What is soul she hath servewine and meat and the rules
+some days that mean than your father roous drunk
+To
+
+(Shall I give)
+Shall I give are never as retunio,
+Say I am the time shall die brother, great weary:
+In the both in the mercy of
+
+(X087hNYB BHN BYFVuhsdbs)
+X087hNYB BHN BYFVuhsdbsing the swords,
+Let keep my other spirit, and show me, and sworn
+Her be with that I am alace wear to

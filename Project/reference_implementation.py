@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--load", type=str, required=False)
 args = parser.parse_args()
 
+
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 LR = 1e-3
 
