@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 from collections import Counter
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler
+from sklearn.metrics import accuracy_score
 import time
 import copy
 
@@ -69,7 +70,6 @@ def clean_dataset(data):
     data["sentence"] = data["sentence"].str.lower()    
     data["sentence"] = data["sentence"].replace("[a-zA-Z0-9-_.]+@[a-zA-Z0-9-_.]+", "", regex=True)
     data["sentence"] = data["sentence"].replace("((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}", "", regex=True)
-    #data["sentence"] = data["sentence"].replace("!@#$%^&*()[]{};:,./<>?\|`~-=_+", "") # remove special chars
     data["sentence"] = data["sentence"].replace("\d", "", regex=True)
     return data
     
@@ -108,9 +108,7 @@ def create_dataloader(path):
     train_masks, val_masks, _, _ = train_test_split(train_masks, td_copy, test_size=0.176, shuffle=False)
 
     train_dataset = TensorDataset(torch.tensor(train_data), torch.tensor(train_masks), torch.FloatTensor(train_labels))
-    #train_sampler = RandomSampler(torch.tensor(train_data))
     valid_dataset = TensorDataset(torch.tensor(val_data), torch.tensor(val_masks), torch.FloatTensor(val_labels))
-    #valid_sampler = later
     test_dataset = TensorDataset(torch.tensor(test_data), torch.tensor(test_masks), torch.FloatTensor(test_labels))
 
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE)
@@ -146,7 +144,6 @@ class Net(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
         # loss function
-        # self.loss_fn = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.parameters(), lr=LR)
         self.loss_fn = nn.BCELoss()  # same as tosin
         self.hidden_size = hidden_size
@@ -169,7 +166,7 @@ class Net(nn.Module):
         out = self.fc1(out)
         out = self.fc2(out)
         out = self.sigmoid(out)
-        out = out.view(input_size, -1) # this is wrong atm
+        out = out.view(input_size, -1)
         out = out[:, -1]
         return out
 
@@ -201,7 +198,8 @@ class Net(nn.Module):
             print("Train loss: {}".format(train_loss/train_steps))
 
             self.eval()
-            eval_loss, eval_steps = 0.0, 0.0
+            eval_loss, eval_acc, eval_steps = 0.0, 0.0, 0.0
+            predictions = []
             for i, (inputs, masks, labels) in enumerate(val_loader):
                 print("Val batch {}/{}...".format(i, len(val_loader)))
                 with torch.no_grad():
@@ -213,6 +211,7 @@ class Net(nn.Module):
                     loss = self.loss_fn(scores, labels)
                     eval_loss += loss.item()
                     eval_steps += 1
+                    predictions.extend(scores)
 
             if eval_loss < best_loss:
                 print("New best model with train loss {0:.2f}".format(best_loss))
@@ -223,8 +222,9 @@ class Net(nn.Module):
                 num_of_no_improvement += 1
             
             print("Val loss: {}".format(eval_loss/eval_steps))
+            print("Val acc: {}".format(accuracy_score(labels, predictions)))
             print("Time elapsed: {}".format(time.time() - start_time))
-         
+
             if num_of_no_improvement >= STOPPING_CRITERIA_EPOCHS:
                 print("Early stopping criteria met, stopping...")
                 break
@@ -238,4 +238,6 @@ class Net(nn.Module):
         return best_model
 
     def load(self, path):
+        print(path)
         self.load_state_dict(torch.load(path))
+        return self
