@@ -211,6 +211,10 @@ class Net(nn.Module):
                     loss = self.loss_fn(scores, labels)
                     eval_loss += loss.item()
                     eval_steps += 1
+
+                    scores = torch.round(scores.squeeze())
+                    scores = scores.to("cpu")
+                    scores = scores.numpy()
                     predictions.extend(scores)
 
             if eval_loss < best_loss:
