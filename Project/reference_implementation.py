@@ -58,14 +58,14 @@ if __name__ == "__main__":
     # load pretrained model from file
     pretrained_embeddings = KeyedVectors.load("models/word2vec_m5_s300_w8_s0_h0_n5_i10")
 
-    train_loader, val_loader, test_loader, vocab_size = create_dataloader("data/train.csv")
+    train_loader, val_loader, test_loader, vocab_size, val_labels = create_dataloader("data/train.csv")
 
     model = Net(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE)
 
 
     # train the network
     if args.load is None:
-        best_model = model._train(train_loader, val_loader, test_loader, save=True)
+        best_model = model._train(train_loader, val_loader, test_loader, val_labels, save=True)
     else:
         best_model = model.load(args.load)
 

@@ -115,7 +115,7 @@ def create_dataloader(path):
     valid_dataloader = DataLoader(valid_dataset, batch_size=BATCH_SIZE)
     test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
 
-    return train_dataloader, valid_dataloader, test_dataloader, len(words_to_idx)+1
+    return train_dataloader, valid_dataloader, test_dataloader, len(words_to_idx)+1, val_labels
 
 class LambdaLayer(nn.Module):
     def __init__(self, lambd):
@@ -173,7 +173,7 @@ class Net(nn.Module):
     def embeds_input(self, inputs):
         return self.embedding_layer(inputs)
 
-    def _train(self, train_loader, val_loader, test_loader, save=False):
+    def _train(self, train_loader, val_loader, test_loader, v_labels, save=False):
         start_time = time.time()
         best_model = nn.Linear(10, 2)
         best_loss = float('inf')
@@ -223,7 +223,7 @@ class Net(nn.Module):
             
             predictions = torch.FloatTensor(predictions)
             print("Val loss: {}".format(eval_loss/eval_steps))
-            print("Val acc: {}".format(accuracy_score(labels, predictions)))
+            print("Val acc: {}".format(accuracy_score(v_labels, predictions)))
             print("Time elapsed: {}".format(time.time() - start_time))
 
             if num_of_no_improvement >= STOPPING_CRITERIA_EPOCHS:
