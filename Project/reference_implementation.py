@@ -51,6 +51,7 @@ class FilterVisualizer():
                     print("loss val: {}".format(loss))
                     loss.backward()
                     optimizer.step()
+            
 
 if __name__ == "__main__":
     print("device to use: {}".format(DEVICE))
