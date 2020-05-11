@@ -71,6 +71,19 @@ class FilterVisualizer():
 
 
 
+        t = model.get_embedding()
+        # https://discuss.pytorch.org/t/vec2word-or-something-similar/2068/2
+        normalized_embedding = t.weight/((t.weight**2).sum(0)**0.5).expand_as(t.weight)
+        similarity, words = torch.topk(torch.mv(normalized_embedding, random_sentence.squeeze(0).squeeze(0)), 5)
+        print(similarity, words)
+        for i, word in enumerate(words):
+            for k, v in words_to_idx.items():
+                if word.item() == v:
+                    print("{}:th closest word {}".format(i, k))
+                    break
+
+
+
 if __name__ == "__main__":
     print("device to use: {}".format(DEVICE))
 
