@@ -28,9 +28,14 @@ class FilterVisualizer():
         self.model = model.eval()
         set_trainable(self.model, False)
     
-    def visualize(self, layer_name, vocab_size, optim_steps=20):
+    def visualize(self, layer_name, vocab_size, words_to_idx, optim_steps=20):
         # create input to "train"
-        random_sentence = torch.LongTensor(1, 250).random_(0, vocab_size)
+        print(words_to_idx)
+        random_sentence = torch.LongTensor(1, 1).random_(0, vocab_size)
+        for k, v in words_to_idx.items():
+            if random_sentence[0].item() == v:
+                print("random word {}".format(k))
+                break
         random_sentence = model.embeds_input(random_sentence)
         random_sentence = Variable(random_sentence, requires_grad=True)
 
@@ -48,10 +53,23 @@ class FilterVisualizer():
             for n, m in self.model.named_modules():
                 if n == layer_name:
                     loss = -m._value_hook.mean()
-                    print("loss val: {}".format(loss))
+                    print("loss val: {:.3f}".format(loss))
                     loss.backward()
                     optimizer.step()
             
+
+        t = model.get_embedding()
+        # https://discuss.pytorch.org/t/vec2word-or-something-similar/2068/2
+        normalized_embedding = t.weight/((t.weight**2).sum(0)**0.5).expand_as(t.weight)
+        similarity, words = torch.topk(torch.mv(normalized_embedding, random_sentence.squeeze(0).squeeze(0)), 5)
+        print(similarity, words)
+        for i, word in enumerate(words):
+            for k, v in words_to_idx.items():
+                if word.item() == v:
+                    print("{}:th closest word {}".format(i, k))
+                    break
+
+
 
 if __name__ == "__main__":
     print("device to use: {}".format(DEVICE))
@@ -59,10 +77,9 @@ if __name__ == "__main__":
     # load pretrained model from file
     pretrained_embeddings = KeyedVectors.load("models/word2vec_m5_s300_w8_s0_h0_n5_i10")
 
-    train_loader, val_loader, test_loader, vocab_size, val_labels = create_dataloader("data/train.csv")
+    train_loader, val_loader, test_loader, vocab_size, val_labels, words_to_idx = create_dataloader("data/train.csv")
 
     model = Net(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE)
-
 
     # train the network
     if args.load is None:
@@ -71,5 +88,5 @@ if __name__ == "__main__":
         best_model = model.load(args.load)
 
     f = FilterVisualizer(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE, model=best_model)
-    f.visualize("fc2", vocab_size, optim_steps=100)
+    f.visualize("fc2", vocab_size, words_to_idx, optim_steps=10)
    

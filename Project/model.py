@@ -70,6 +70,7 @@ def clean_dataset(data):
     data["sentence"] = data["sentence"].str.lower()    
     data["sentence"] = data["sentence"].replace("[a-zA-Z0-9-_.]+@[a-zA-Z0-9-_.]+", "", regex=True)
     data["sentence"] = data["sentence"].replace("((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}", "", regex=True)
+    data["sentence"] = data["sentence"].str.replace('[^\w\s]','')  # remove special characters
     data["sentence"] = data["sentence"].replace("\d", "", regex=True)
     return data
     
@@ -115,7 +116,7 @@ def create_dataloader(path):
     valid_dataloader = DataLoader(valid_dataset, batch_size=BATCH_SIZE)
     test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
 
-    return train_dataloader, valid_dataloader, test_dataloader, len(words_to_idx)+1, val_labels
+    return train_dataloader, valid_dataloader, test_dataloader, len(words_to_idx)+1, val_labels, words_to_idx
 
 class LambdaLayer(nn.Module):
     def __init__(self, lambd):
@@ -151,6 +152,9 @@ class Net(nn.Module):
 
         if pretrained_model is not None:
             self.model.load(pretrained_model)
+
+    def get_embedding(self):
+        return self.embedding_layer
 
     def forward(self, inputs, embedded_input=False):
         if not embedded_input:
