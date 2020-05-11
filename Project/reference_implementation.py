@@ -1,5 +1,6 @@
 from model import create_dataloader, Net
 import torch
+import torch.nn as nn
 from gensim.models import KeyedVectors
 import torch.optim as optim
 from torch.autograd import Variable
@@ -36,15 +37,19 @@ class FilterVisualizer():
                 print("random word {}".format(k))
                 break
         random_sentence = model.embeds_input(random_sentence)
-        
+        start_sentence = random_sentence.clone() 
+
+
         t = model.get_embedding()
         # https://discuss.pytorch.org/t/vec2word-or-something-similar/2068/2
+        cos = nn.CosineSimilarity(dim=0, eps=1e-6)
         normalized_embedding = t.weight/((t.weight**2).sum(0)**0.5).expand_as(t.weight)
-        similarity, words = torch.topk(torch.mv(normalized_embedding, random_sentence.squeeze(0).squeeze(0)), 5)
+        #_, words = torch.topk(torch.mv(normalized_embedding, random_sentence.squeeze(0).squeeze(0)), 5)
+        _, words = torch.topk(cos(normalized_embedding, random_sentence.squeeze(0).squeeze(0)), 5)
         for i, word in enumerate(words):
             for k, v in words_to_idx.items():
                 if word.item() == v:
-                    print("{}:th closest word {}".format(i, k))
+                    print("{}:th closest word {}".format(i+1, k))
                     break
         
         random_sentence = Variable(random_sentence, requires_grad=True)
@@ -63,17 +68,21 @@ class FilterVisualizer():
             for n, m in self.model.named_modules():
                 if n == layer_name:
                     loss = -m._value_hook.mean()
-                   # print("loss val: {:.3f}".format(loss))
+
                     loss.backward()
                     optimizer.step()
+            if nm % 100:
+                print("cos similairty: {}".format(cos(random_sentence.squeeze(0).squeeze(0), start_sentence.squeeze(0).squeeze(0))))
+                print("norm: {}".format(torch.norm(random_sentence.squeeze(0).squeeze(0))))
             
         # https://discuss.pytorch.org/t/vec2word-or-something-similar/2068/2
         normalized_embedding = t.weight/((t.weight**2).sum(0)**0.5).expand_as(t.weight)
-        similarity, words = torch.topk(torch.mv(normalized_embedding, random_sentence.squeeze(0).squeeze(0)), 5)
+        _, words = torch.topk(cos(normalized_embedding, random_sentence.squeeze(0).squeeze(0)), 5)
+        #_, words = torch.topk(torch.mv(normalized_embedding, random_sentence.squeeze(0).squeeze(0)), 5)
         for i, word in enumerate(words):
             for k, v in words_to_idx.items():
                 if word.item() == v:
-                    print("{}:th closest word {}".format(i, k))
+                    print("{}:th closest word {}".format(i+1, k))
                     break
 
 if __name__ == "__main__":
@@ -93,5 +102,5 @@ if __name__ == "__main__":
         best_model = model.load(args.load)
 
     f = FilterVisualizer(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE, model=best_model)
-    f.visualize("fc2", vocab_size, words_to_idx, optim_steps=20000)
+    f.visualize("fc2", vocab_size, words_to_idx, optim_steps=200)
    
