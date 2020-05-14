@@ -4,3 +4,4 @@ Project/models
 DeepDIVA/data/*
 *.pth.tar
 *.tar.gz
+Project/runs/
