@@ -17,6 +17,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--load", type=str, required=False)
 args = parser.parse_args()
 writer = SummaryWriter('runs/')
+scats = []
 
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -29,29 +30,45 @@ def set_trainable(model, requires_grad):
     for param in model.parameters():
         param.requires_grad = requires_grad
 
-def update_plot(i, x_embedding, y_embedding, fig):
-    p = (x_embedding, y_embedding)
-    
-    return scat,
+def update_plot(i, static_x, static_y, moving_x, moving_y, ax, labels):
+    global scats
+    for scat in scats:
+        scat.remove()
 
-def save_embeddings(model, res, visualisation_model):
+    scats = []
+    if i > 0:
+        static_x.pop()
+        static_y.pop()
+    
+        static_x.append(moving_x[i])
+        static_y.append(moving_y[i])
+
+    for j in range(len(static_x)):
+        scats.append(ax.scatter(static_x[j], static_y[j]))
+        #ann = plt.annotate(labels[j], xy=(static_x[i], static_y[i]), xytext=(5, 2), textcoords="offset points", ha="right", va="bottom")
+
+
+def save_embeddings(model, res, words_to_idx, visualisation_model):
     "Creates and TSNE model and plots it"
     labels = []
     tokens = []
     i = 0
-    for word in model.wv.vocab:
-        tokens.append(model[word])
+    
+    for word in res[0]["closest_words_before_training"]:
+        tensor = torch.LongTensor([[words_to_idx[word]]])
+        tensor = model.embeds_input(tensor)
+        tensor = tensor.squeeze(0)[0].data
+        tokens.append(np.array(tensor))
         labels.append(word)
-        i += 1
-        if i == 20:
-            break
 
-    #writer.add_embedding(np.array(tokens), metadata=np.array(labels))
-    #writer.close()
-    # MAKE THIS WORK FOR PCA
-    # TRY TO FIGURE OUT HOW TO UPDATE THE WORD THAT WE ARE TRAINING INSIDE A VISUALISATION TOOL SO WE CAN SEE HOW IT MOVES
-    # MAYBE THATS DECENT RESULTS FOR THE PROJECT?
 
+    for word in res[0]["closest_words_after_training"]:
+        tensor = torch.LongTensor([[words_to_idx[word]]])
+        tensor = model.embeds_input(tensor)
+        tensor = tensor.squeeze(0)[0].data
+        tokens.append(np.array(tensor))
+        labels.append(word)
+    
     if visualisation_model == "tsne":
         vis_model = TSNE(perplexity=40, n_components=2, init='pca', n_iter=5000, random_state=23, verbose=1, n_jobs=10)
     elif visualisation_model == "pca":
@@ -72,9 +89,10 @@ def save_embeddings(model, res, visualisation_model):
         x_embedding.append(value[0])
         y_embedding.append(value[1])
 
-    fig = plt.figure(figsize=(16, 16)) 
+    fig = plt.figure(figsize=(16, 16))
+    ax = plt.axes()
     for i in range(len(x)):
-        scat = plt.scatter(x[i],y[i])
+        scats = plt.scatter(x[i],y[i])
         plt.annotate(labels[i],
                      xy=(x[i], y[i]),
                      xytext=(5, 2),
@@ -84,7 +102,7 @@ def save_embeddings(model, res, visualisation_model):
 
     # animate one scatter
 
-    ani = animation.FuncAnimation(fig, update_plot, frames=100, interval=50, fargs=(x_embedding, y_embedding, fig))
+    ani = animation.FuncAnimation(fig, update_plot, frames=len(x_embedding), interval=100, fargs=(x, y, x_embedding, y_embedding, ax, labels))
     ani.save("fig.gif")
 
 class FilterVisualizer():
@@ -100,6 +118,7 @@ class FilterVisualizer():
         for j in range(random_sentence.size()[1]):
             for k, v in words_to_idx.items():
                 if random_sentence[0][j].item() == v:
+                    print("start word {}".format(k))
                     d.append({"start_word": k})
                     break
 
@@ -112,14 +131,14 @@ class FilterVisualizer():
         normalized_embedding = t.weight/((t.weight**2).sum(0)**0.5).expand_as(t.weight)
         for j in range(random_sentence.size()[1]):
             temp_list = []
-            _, words = torch.topk(cos(normalized_embedding, random_sentence.squeeze(0)[j]), 5)
+            _, words = torch.topk(cos(normalized_embedding, random_sentence.squeeze(0)[j]), 20)
             for i, word in enumerate(words):
                 for k, v in words_to_idx.items():
                     if word.item() == v:
                         temp_list.append(k)
                         break
 
-            d[j]["cloest_words_before_training"] = temp_list
+            d[j]["closest_words_before_training"] = temp_list
 
         random_sentence = Variable(random_sentence, requires_grad=True)
 
@@ -140,11 +159,10 @@ class FilterVisualizer():
                     loss.backward()
                     optimizer.step()
 
-            if nm % 100 == 0:
+            if nm % 20 == 0:
                 for j in range(random_sentence.size()[1]):
                     c_s = cos(random_sentence.squeeze(0)[j], start_sentence.squeeze(0)[j]).item()
                     norm = torch.norm(random_sentence.squeeze(0)[j]).item()
-                    
                     
                     try:
                         d[j]["embedding_value"].append(np.array(random_sentence.squeeze(0)[j].data))
@@ -165,14 +183,14 @@ class FilterVisualizer():
         normalized_embedding = t.weight/((t.weight**2).sum(0)**0.5).expand_as(t.weight)
         for j in range(random_sentence.size()[1]):
             temp_list = []
-            _, words = torch.topk(cos(normalized_embedding, random_sentence.squeeze(0)[j]), 5)
+            _, words = torch.topk(cos(normalized_embedding, random_sentence.squeeze(0)[j]), 20)
             for i, word in enumerate(words):
                 for k, v in words_to_idx.items():
                     if word.item() == v:
                         temp_list.append(k)
                         break
 
-            d[j]["closest_word_after_training"] = temp_list
+            d[j]["closest_words_after_training"] = temp_list
 
         return d
 
@@ -193,5 +211,5 @@ if __name__ == "__main__":
         best_model = model.load(args.load)
 
     f = FilterVisualizer(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE, model=best_model)
-    res = f.visualize("fc1", vocab_size, words_to_idx, optim_steps=2000)
-    save_embeddings(pretrained_embeddings, res, visualisation_model="pca")
+    res = f.visualize("fc2", vocab_size, words_to_idx, optim_steps=20000)
+    save_embeddings(best_model, res, words_to_idx, visualisation_model="tsne")
