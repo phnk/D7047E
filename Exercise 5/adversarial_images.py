@@ -167,7 +167,7 @@ x_batch = mnist.test.images[index_of_4s]
 plot_predictions(x_batch)
 
 # Get 10 9s [:,9] from top 500 [0:500], nonzero returns tuple, get index[0], then first 10 [0:10]
-#index_of_9s = np.nonzero(mnist.test.labels[0:500][:,2])[0][0:10]
+#index_of_9s = np.nonzero(mnist.test.labels[0:500][:,9])[0][0:10]
 #x_batch = mnist.test.images[index_of_9s]
 
 #plot_predictions(x_batch)
@@ -175,7 +175,7 @@ plot_predictions(x_batch)
 '''
 ADVERSARIAL IMAGES
 
-Create adversarial image of a 2 to be misclassified as a 6
+#Create adversarial image of a 2 to be misclassified as a 6
 Create adversarial image of a 4 to be misclassified as a 9
 '''
 
@@ -212,26 +212,29 @@ def create_plot_adversarial_images(x_image, y_label, lr=0.1, n_steps=1, output_p
     return probs_per_step
 
 
-# Pick a random 4 image from first 1000 images 
-# Create adversarial image and with target label 9
+# Task 2.1: Create adversarial image and with target label 9
 index_of_4s = np.nonzero(mnist.test.labels[0:1000][:,4])[0]
+type(index_of_4s)
 rand_index = np.random.randint(0, len(index_of_4s))
 image_norm = mnist.test.images[index_of_4s[rand_index]]
 image_norm = np.reshape(image_norm, (1, 784))
 label_adv = [0,0,0,0,0,0,0,0,0,1] # one hot encoded, adversarial label 9
 
+'''
+# Task 2.2 Use a random noise image to classify it as 9
+
+image_norm = np.random.random_sample((1, 784))
+label_adv = [0,0,0,0,0,0,0,0,0,1] # one hot encoded, adversarial label 9
+
+
+# Task 2.3 Use a zero image (matrix with all values 0) and classify it as 9.
+
 # Plot adversarial images
 # Over each step, model certainty changes from 4 to 9
+image_norm = np.zeros((1, 784))
+label_adv = [0,0,0,0,0,0,0,0,0,1] # one hot encoded, adversarial label 9
+'''
+
 create_plot_adversarial_images(image_norm, label_adv, lr=0.2, n_steps=5)
-
-
-# Use a random noise image to classify it as 9
-
-
-#Use a zero image (matrix with all values 0) and classify it as 9.
-
-
-
-
 
 sess.close()
