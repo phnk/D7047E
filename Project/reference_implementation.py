@@ -9,7 +9,6 @@ import torchvision.models as models
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
-from torch.utils.tensorboard import SummaryWriter
 from sklearn.decomposition import PCA
 import matplotlib.animation as animation
 import re
@@ -17,7 +16,6 @@ import re
 parser = argparse.ArgumentParser()
 parser.add_argument("--load", type=str, required=False)
 args = parser.parse_args()
-writer = SummaryWriter('runs/')
 scats = []
 
 
@@ -47,9 +45,7 @@ def update_plot(i, static_x, static_y, moving_x, moving_y, ax, labels):
     for j in range(len(static_x)):
         scats.append(ax.scatter(static_x[j], static_y[j]))
 
-
 def save_embeddings(model, res, words_to_idx, visualisation_model):
-    "Creates and TSNE model and plots it"
     labels = []
     tokens = []
     i = 0
@@ -106,7 +102,16 @@ def save_embeddings(model, res, words_to_idx, visualisation_model):
                      va='bottom')
     # what interval to use for something
     ani = animation.FuncAnimation(fig, update_plot, frames=len(x_embedding), interval=30, save_count=50, fargs=(x, y, x_embedding, y_embedding, ax, labels))
-    ani.save("fig.gif")
+    ani.save("figs/fig-{}-{}.gif".format(res["start_word"], visualisation_model))
+
+def save_static_graph(y, start_word, y_label):
+    x = range(0, len(y)*20, 20)
+    plt.plot(x, y)
+    plt.xlabel("epochs")
+    plt.ylabel(y_label)
+    plt.title(start_word)
+    plt.savefig("figs/fig-{}-{}.png".format(start_word, y_label))
+    plt.clf()
 
 class FilterVisualizer():
     def __init__(self, vocab_size, pretrained_embeddings, device, model):
@@ -161,6 +166,7 @@ class FilterVisualizer():
                 break
 
         optimizer = torch.optim.Adam([random_sentence], lr=LR)
+
         for nm in range(optim_steps):
             if nm % 20 == 0:
                 norm = torch.norm(random_sentence.squeeze(0)).item()
@@ -175,12 +181,18 @@ class FilterVisualizer():
 
             optimizer.zero_grad()
             prediction = self.model(random_sentence, embedded_input=True)
+            print(prediction)
 
             for n, m in self.model.named_modules():
                 if n == layer_name:
-                    loss = -m._value_hook.mean()
+                    loss = m._value_hook.mean()
                     loss.backward()
                     optimizer.step()
+                    if nm % 20 == 0:
+                        try:
+                            d["activation"].append(m._value_hook.mean())
+                        except KeyError:
+                            d["activation"] = [m._value_hook.mean()]
             
         # https://discuss.pytorch.org/t/vec2word-or-something-similar/2068/2
         temp_list = []
@@ -193,10 +205,33 @@ class FilterVisualizer():
 
         d["closest_words_after_training"] = temp_list
 
+        '''
+        inp = start_sentence
+        prediction = self.model(inp, embedded_input=True)
+        p = random_sentence.clone() / 1000
+        i = 0
+
+        while prediction.item() > 0.1:
+            p = p*2
+            inp = start_sentence + p
+            prediction = self.model(inp, embedded_input=True)
+            i += 1
+            if i % 10000 == 0:
+                print(i)
+
+        start_norm = torch.norm(start_sentence.squeeze(0)).item()
+        perdiction_norm = torch.norm(prediction.squeeze(0)).item()
+        random_sentence_norm = torch.norm(random_sentence.squeeze(0)).item()
+        print(start_norm)
+        print(perdiction_norm)
+        print(random_sentence_norm)
+        print(p.max())
+        print(p.mean())
+        '''
+
         return d
 
 if __name__ == "__main__":
-    print("device to use: {}".format(DEVICE))
 
     # load pretrained model from file
     pretrained_embeddings = KeyedVectors.load("models/word2vec_m5_s300_w8_s0_h0_n5_i10")
@@ -212,5 +247,8 @@ if __name__ == "__main__":
         best_model = model.load(args.load)
 
     f = FilterVisualizer(vocab_size=vocab_size, pretrained_embeddings=pretrained_embeddings, device=DEVICE, model=best_model)
-    res = f.visualize("fc2", vocab_size, words_to_idx, input_word="movie", optim_steps=20000)
-    save_embeddings(best_model, res, words_to_idx, visualisation_model="pca")
+    res = f.visualize("fc2", vocab_size, words_to_idx, input_word=None, optim_steps=20000)
+    #save_static_graph(res["activation"], res["start_word"], "activation")
+    #save_static_graph(res["norm"], res["start_word"], "norm")
+    print("word {}, start_activation {}, end_activation {}".format(res["start_word"], res["activation"][0], res["activation"][-1]))
+    #save_embeddings(best_model, res, words_to_idx, visualisation_model="tsne")
