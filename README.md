@@ -1,4 +1,6 @@
 # D7047E
+**Warning: There are security vulnerabilities in this repo, I will not fix them as this work was never intended to be secure, if you use any of this code in any project make sure you fix the security issues**
+
 Repository for the course Advanced Deep Learning, D7047E, at Lulea University of Technology (LTU). This repo contains the exercise and project work done in the course. 
 
 The log files for the exercises can be found in their respective folder, such exercsie 1 contains all log files for the experiments done in exercise 1. The main idea in the project is to try to viusalize what is happening inside an NLP similarily to what has been done with CNNs.
